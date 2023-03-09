@@ -82,30 +82,19 @@ EOFSCRIPT
 
 uninstall() {
   echo -e "卸载"
-  while true
-  do
-      read -r -p '你是否备份好/opt/${service_name}/目录下的文件,确认继续请输入Y?' choice
-      case "$choice" in
-        n|N) break;;
-        y|Y)
-          systemctl disable ${service_name}.service
-          systemctl stop ${service_name}.service
-          rm -rf /etc/systemd/system/${service_name}.service
-          systemctl daemon-reload
-          rm -rf /opt/${service_name}/
-          break
-        ;;
-        *) echo '输入错误';;
-      esac
-  done
+  systemctl disable ${service_name}.service
+  systemctl stop ${service_name}.service
+  rm -rf /etc/systemd/system/${service_name}.service
+  systemctl daemon-reload
+  rm -rf /opt/${service_name}/
 }
 
 
 show_usage() {
   echo "使用方法: "
   echo "---------------------------------------"
-  echo "./install.sh install           - 安装"
-  echo "./install.sh uninstall         - 卸载"
+  echo "./install.sh ${service_name} install           - 安装"
+  echo "./install.sh ${service_name} uninstall         - 卸载"
   echo "---------------------------------------"
 }
 service_name=$1
