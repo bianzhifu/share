@@ -38,9 +38,9 @@ install() {
   chmod 775 /opt/${service_name}/
 
   echo -e "下载${service_name}"
-  wget -O ${service_name}_linux_${os_arch}.tar.gz https://github.com/bianzhifu/share/releases/download/${version}/${service_name}_linux_${os_arch} >/dev/null 2>&1
+  wget -O ${service_name}_linux_${os_arch}.tar.gz https://github.com/bianzhifu/share/releases/download/${version}/${service_name}_linux_${os_arch}.tar.gz >/dev/null 2>&1
   if [[ $? != 0 ]]; then
-    echo -e "${red}下载失败,https://github.com/bianzhifu/share/releases/download/${version}/${service_name}_linux_${os_arch}"
+    echo -e "${red}下载失败,https://github.com/bianzhifu/share/releases/download/${version}/${service_name}_linux_${os_arch}.tar.gz"
     return 0
   fi
   tar xf ${service_name}_linux_${os_arch}.tar.gz &&
