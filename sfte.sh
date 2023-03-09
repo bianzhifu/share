@@ -21,7 +21,7 @@ pre_check() {
     fi
 }
 
-install_agent(){
+install(){
   echo -e "> 安装"
   echo -e "正在版本号"
   local version=$(curl -m 10 -sL "https://api.github.com/repos/bianzhifu/share/releases/latest" | grep "tag_name" | head -n 1 | awk -F ":" '{print $2}' | sed 's/\"//g;s/,//g;s/ //g')
@@ -87,10 +87,10 @@ show_usage() {
 pre_check
 case $1 in
 "install")
-    install_agent $2 $3 $4
+    install
     ;;
 "uninstall")
-    uninstall_agent 0
+    uninstall
     ;;
 *) show_usage ;;
 esac
