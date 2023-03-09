@@ -34,7 +34,7 @@ install() {
       echo -e "当前最新版本为: ${version}"
   fi
 
-  mkdir -p /opt/${service_name}}/
+  mkdir -p /opt/${service_name}/
   chmod 775 /opt/${service_name}/
 
   echo -e "下载${service_name}"
