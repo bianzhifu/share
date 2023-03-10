@@ -47,7 +47,8 @@ download_and_install_service() {
     return 1
   fi
 
-  tar -xzf "/tmp/${service_name}_linux_$os_arch.tar.gz" -C "/opt/$service_name" --strip-components=1 "${service_name}/README.md"
+  tar -xzf "/tmp/${service_name}_linux_$os_arch.tar.gz" -C "/opt/$service_name" --exclude=README.md
+  rm -rf "/tmp/${service_name}_linux_$os_arch.tar.gz"
   chmod +x "/opt/$service_name/$service_name"
 
   echo "$service_name installation complete"
@@ -105,7 +106,7 @@ install() {
     # Check if downloaded file is a tar.gz
     if tar -tzf "/opt/${service_name}/${service_name}.tar.gz" >/dev/null 2>&1; then
       # Extract downloaded file
-      tar -xzf "/opt/${service_name}/${service_name}.tar.gz" -C /opt/${service_name}/ --strip-components=1
+      tar -xzf "/opt/${service_name}/${service_name}.tar.gz" -C /opt/${service_name}/ --exclude=README.md
     else
       echo "Downloaded file is not a tar.gz, skipping extraction."
       mv "/opt/${service_name}/${service_name}.tar.gz" "/opt/${service_name}/${service_name}"
