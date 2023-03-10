@@ -30,6 +30,22 @@ bash <(curl -s https://raw.githubusercontent.com/bianzhifu/share/master/install.
 编译/etc/systemd/system/mtz-dashboard.service进行个性化参数定制   
 例如  
 ExecStart=/opt/mtz-dashboard/mtz-dashboard -port=80 -password="admin"   
+如果使用Nginx反代DashBoard请添加一下配置
+location / {
+    proxy_pass http://127.0.0.1:8008;
+}
+location /agent {
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_pass http://127.0.0.1:8008;
+}
+location /client {
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_pass http://127.0.0.1:8008;
+}
 ```
 
 ### mtz-agent    
