@@ -3,9 +3,9 @@
 ### sfte   
 ```
 一键安装
-bash <(curl -s https://raw.githubusercontent.com/bianzhifu/share/master/sfte.sh) install
+bash <(curl -s https://raw.githubusercontent.com/bianzhifu/share/master/install.sh) sfte install
 一键卸载
-bash <(curl -s https://raw.githubusercontent.com/bianzhifu/share/master/sfte.sh) uninstall
+bash <(curl -s https://raw.githubusercontent.com/bianzhifu/share/master/install.sh) sfte uninstall
 
 编译/etc/systemd/system/sfte.service进行个性化参数定制
 例如
