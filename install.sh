@@ -3,61 +3,68 @@ os_arch=""
 service_name=""
 
 pre_check() {
-  command -v systemctl >/dev/null 2>&1
-  if [[ $? != 0 ]]; then
-    echo "不支持此系统：未找到 systemctl 命令"
+  # Check if the 'systemctl' command exists
+  if ! command -v systemctl >/dev/null 2>&1; then
+    echo "This system is not supported: 'systemctl' command not found."
     exit 1
   fi
-  # check root
-  [[ $EUID -ne 0 ]] && echo -e "${red}错误: ${plain} 必须使用root用户运行此脚本！\n" && exit 1
 
-  ## os_arch
-  if [[ $(uname -m | grep 'x86_64') != "" ]]; then
-    os_arch="amd64"
-  elif [[ $(uname -m | grep 'aarch64\|armv8b\|armv8l') != "" ]]; then
-    os_arch="arm64"
-  else
-    echo "只支持amd64/arm64"
+  # Check if the script is run as root user
+  if [[ $EUID -ne 0 ]]; then
+    echo -e "${red}Error:${plain} This script must be run as root!\n"
     exit 1
   fi
+
+  # Check the architecture of the operating system
+  case $(uname -m) in
+    *x86_64*) os_arch="amd64";;
+    *aarch64*|*armv8b*|*armv8l*) os_arch="arm64";;
+    *) echo "This script only supports amd64 and arm64 architectures."
+       exit 1;;
+  esac
 }
 
-install() {
-  echo -e "安装${service_name}"
 
-  echo -e "正在${service_name}版本号"
-  local version=$(curl -m 10 -sL "https://api.github.com/repos/bianzhifu/share/releases/latest" | grep "tag_name" | head -n 1 | awk -F ":" '{print $2}' | sed 's/\"//g;s/,//g;s/ //g')
-  if [ ! -n "$version" ]; then
-      echo -e "获取版本号失败，请检查本机能否链接 https://api.github.com/repos/bianzhifu/share/releases/latest"
-      return 0
-  else
-      echo -e "当前最新版本为: ${version}"
+download_and_install_service() {
+  local service_name="$1"
+  local os_arch="$2"
+  local service_url="https://github.com/bianzhifu/share/releases/latest"
+  local version
+
+  echo "Getting the latest version of $service_name..."
+
+  version=$(curl -sSLf -m 10 "$service_url" | grep -oE 'tag_name":.*?[^\\]",' | head -n 1 | cut -d'"' -f4)
+
+  if [ -z "$version" ]; then
+    echo "Failed to get the latest version. Please check if you can access $service_url"
+    return 1
   fi
 
-  mkdir -p /opt/${service_name}/
-  chmod 775 /opt/${service_name}/
+  echo "The latest version of $service_name is $version"
+  echo "Downloading $service_name..."
 
-  echo -e "下载${service_name}"
-  wget -O ${service_name}_linux_${os_arch}.tar.gz https://github.com/bianzhifu/share/releases/download/${version}/${service_name}_linux_${os_arch}.tar.gz >/dev/null 2>&1
-  if [[ $? != 0 ]]; then
-    echo -e "${red}下载失败,https://github.com/bianzhifu/share/releases/download/${version}/${service_name}_linux_${os_arch}.tar.gz"
-    return 0
+  curl -sSLf "https://github.com/bianzhifu/share/releases/download/$version/${service_name}_linux_$os_arch.tar.gz" \
+    -o "/tmp/${service_name}_linux_$os_arch.tar.gz"
+
+  if [[ $? -ne 0 ]]; then
+    echo "Download failed: https://github.com/bianzhifu/share/releases/download/$version/${service_name}_linux_$os_arch.tar.gz"
+    return 1
   fi
-  tar xf ${service_name}_linux_${os_arch}.tar.gz &&
-      mv ${service_name} /opt/${service_name}/${service_name} &&
-      rm -rf ${service_name}_linux_${os_arch}.tar.gz README.md
-  chmod +x /opt/${service_name}/${service_name}
 
+  tar -xzf "/tmp/${service_name}_linux_$os_arch.tar.gz" -C "/opt/$service_name" --strip-components=1 "${service_name}/README.md"
+  chmod +x "/opt/$service_name/$service_name"
 
-  echo -e "修改配置"
+  echo "$service_name installation complete"
+}
 
-  service_script=/etc/systemd/system/${service_name}.service
+install_service() {
+  local service_name=$1
+  local service_script="/etc/systemd/system/${service_name}.service"
 
-  cat >$service_script <<EOFSCRIPT
+  cat << EOF > "$service_script"
 [Unit]
-Description=${service_name}
+Description=$service_name
 After=syslog.target
-#After=network.target
 
 [Service]
 LimitMEMLOCK=infinity
@@ -65,49 +72,87 @@ LimitNOFILE=65535
 Type=simple
 User=root
 Group=root
-WorkingDirectory=/opt/${service_name}/
-ExecStart=/opt/${service_name}/${service_name}
+WorkingDirectory=/opt/$service_name
+ExecStart=/opt/$service_name/$service_name
 Restart=always
 
 [Install]
 WantedBy=multi-user.target
-EOFSCRIPT
-  chmod +x $service_script
+EOF
 
-  echo -e "正在启动服务"
+  echo "Starting $service_name service..."
   systemctl daemon-reload
-  systemctl enable ${service_name}.service
-  systemctl restart ${service_name}.service
+  systemctl enable "$service_name.service"
+  systemctl restart "$service_name.service"
+}
+
+
+install() {
+  local url = $1
+  echo "Installing ${service_name}..."
+
+  # Create the installation directory and set the permissions
+  mkdir -p /opt/${service_name}/
+  chmod 775 /opt/${service_name}/
+
+  # Download the service
+  if [ -z "$url" ]; then
+    download_and_install_service ${service_name} ${os_arch}
+  else
+    echo "Downloading ${service_name} from ${url}"
+    curl -sSLf "$url" -o "/opt/${service_name}/${service_name}.tar.gz"
+    if [[ $? != 0 ]]; then
+      echo "${red}Download failed: $url"
+      return 1
+    fi
+
+    # Check if downloaded file is a tar.gz
+    if tar -tzf "/opt/${service_name}/${service_name}.tar.gz" >/dev/null 2>&1; then
+      # Extract downloaded file
+      tar -xzf "/opt/${service_name}/${service_name}.tar.gz" -C /opt/${service_name}/ --strip-components=1
+    else
+      echo "Downloaded file is not a tar.gz, skipping extraction."
+      mv "/opt/${service_name}/${service_name}.tar.gz" "/opt/${service_name}/${service_name}"
+    fi
+  fi
+
+  # Configure and start the service as a systemd service
+  install_service ${service_name}
+
+  echo "${service_name} installation complete."
 }
 
 uninstall() {
-  echo -e "卸载"
-  systemctl disable ${service_name}.service
+  echo "Uninstalling ${service_name}..."
+  
   systemctl stop ${service_name}.service
-  rm -rf /etc/systemd/system/${service_name}.service
+  systemctl disable ${service_name}.service
+  rm -f /etc/systemd/system/${service_name}.service
   systemctl daemon-reload
-  rm -rf /opt/${service_name}/
+
+  rm -rf /opt/${service_name}
+
+  echo "${service_name} has been successfully uninstalled."
 }
 
 
 show_usage() {
-  echo "使用方法: "
+  echo "Usage: "
   echo "---------------------------------------"
-  echo "./install.sh ${service_name} install           - 安装"
-  echo "./install.sh ${service_name} uninstall         - 卸载"
+  echo "./install.sh ${service_name} install           - install"
+  echo "./install.sh ${service_name} uninstall         - uninstall"
   echo "---------------------------------------"
 }
 service_name=$1
 pre_check
+if [ "$#" -eq 3 ]; then
+  url=$3
+else
+  url=""
+fi
 case $2 in
-"install")
-  install
-  ;;
-"uninstall")
-  uninstall
-  ;;
-"restart")
-  restart
-  ;;
-*) show_usage ;;
+  install)   install $url ;;
+  uninstall) uninstall ;;
+  restart)   restart ;;
+  *)         show_usage ;;
 esac
