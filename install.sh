@@ -107,6 +107,7 @@ install() {
     if tar -tzf "/opt/${service_name}/${service_name}.tar.gz" >/dev/null 2>&1; then
       # Extract downloaded file
       tar -xzf "/opt/${service_name}/${service_name}.tar.gz" -C /opt/${service_name}/ --exclude=README.md
+      rm -rf "/opt/${service_name}/${service_name}.tar.gz"
     else
       echo "Downloaded file is not a tar.gz, skipping extraction."
       mv "/opt/${service_name}/${service_name}.tar.gz" "/opt/${service_name}/${service_name}"
