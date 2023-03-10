@@ -3,9 +3,9 @@
 ### sfte   
 ```
 一键安装
-bash <(curl -s https://raw.githubusercontent.com/bianzhifu/share/master/install.sh) sfte install
+curl -s https://raw.githubusercontent.com/bianzhifu/share/master/install.sh | bash -s sfte install   
 一键卸载
-bash <(curl -s https://raw.githubusercontent.com/bianzhifu/share/master/install.sh) sfte uninstall
+curl -s https://raw.githubusercontent.com/bianzhifu/share/master/install.sh | bash -s sfte uninstall
 
 编译/etc/systemd/system/sfte.service进行个性化参数定制
 例如
@@ -16,9 +16,9 @@ ExecStart=/opt/sfte/sfte -cpu=99 -mem=99 -upload=60
 ### mtz-dashboard    
 ```
 一键安装   
-bash <(curl -s https://raw.githubusercontent.com/bianzhifu/share/master/install.sh) mtz-dashboard install   
+curl -s https://raw.githubusercontent.com/bianzhifu/share/master/install.sh | bash -s mtz-dashboard install   
 一键卸载   
-bash <(curl -s https://raw.githubusercontent.com/bianzhifu/share/master/install.sh) mtz-dashboard uninstall 
+curl -s https://raw.githubusercontent.com/bianzhifu/share/master/install.sh | bash -s mtz-dashboard uninstall 
 在/opt/mtz-dashboard/servers.json添加你的服务器格式如下
 [
   {
@@ -51,8 +51,8 @@ location /client {
 ### mtz-agent    
 ```
 一键安装 https://mtz.com 为你的dashboard地址 ffffffff-ffff-ffff-ffff-ffffffffffff 为 servers.json的secret    
-bash <(curl -s https://raw.githubusercontent.com/bianzhifu/share/master/mtz-agent.sh) https://mtz.com ffffffff-ffff-ffff-ffff-ffffffffffff       
+curl -s https://raw.githubusercontent.com/bianzhifu/share/master/mtz-agent.sh | bash -s https://mtz.com ffffffff-ffff-ffff-ffff-ffffffffffff       
 一键卸载   
-bash <(curl -s https://raw.githubusercontent.com/bianzhifu/share/master/install.sh) mtz-agent uninstall   
+curl -s https://raw.githubusercontent.com/bianzhifu/share/master/install.sh | bash -s mtz-agent uninstall   
 ```
 
