@@ -28,7 +28,7 @@ pre_check() {
 download_and_install_service() {
   local service_name="$1"
   local os_arch="$2"
-  local service_url="https://github.com/bianzhifu/share/releases/latest"
+  local service_url="https://api.github.com/repos/bianzhifu/share/releases/latest"
   local version
 
   echo "Getting the latest version of $service_name..."
