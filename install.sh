@@ -28,13 +28,9 @@ pre_check() {
 download_and_install_service() {
   local service_name="$1"
   local os_arch="$2"
-  local service_url="https://api.github.com/repos/bianzhifu/share/releases/latest"
-  local version
 
   echo "Getting the latest version of $service_name..."
-
-  version=$(curl -sSLf -m 10 "$service_url" | grep -oE 'tag_name":.*?[^\\]",' | head -n 1 | cut -d'"' -f4)
-
+  local version=$(curl -m 10 -sL "https://api.github.com/repos/bianzhifu/share/releases/latest" | grep "tag_name" | head -n 1 | awk -F ":" '{print $2}' | sed 's/\"//g;s/,//g;s/ //g')
   if [ -z "$version" ]; then
     echo "Failed to get the latest version. Please check if you can access $service_url"
     return 1
