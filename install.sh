@@ -88,7 +88,7 @@ EOF
 
 
 install() {
-  local url = $1
+  local url=$1
   echo "Installing ${service_name}..."
 
   # Create the installation directory and set the permissions
